@@ -7,11 +7,11 @@ EAPI=4
 PYTHON_DEPEND="2:2.7"
 PYTHON_RESTRICTED_ABIS="3.* *-jython *-pypy-*"
 
-inherit git-2 eutils
+inherit eutils
 
 DESCRIPTION="cli carddav client (for use with mutt etc.) "
 HOMEPAGE="http://pycarddav.lostpackets.de"
-EGIT_REPO_URI="https://github.com/geier/pycarddav.git"
+SRC_URI="http://pycarddav.lostpackets.de/download/${P}.tar.gz"
 
 LICENSE="THE BEER-WARE LICENSE"
 SLOT="0"
@@ -19,14 +19,10 @@ KEYWORDS="~amd64 ~x86"
 IUSE=""
 
 RDEPEND="dev-python/vobject
-        dev-python/pycurl
-        dev-python/lxml
-        dev-python/pysqlite:2"
+		dev-python/pycurl
+		dev-python/lxml
+		dev-python/pysqlite:2"
 DEPEND="${RDEPEND}"
-
-src_unpack() {
-	git-2_src_unpack
-}
 
 src_compile() { true; }
 
