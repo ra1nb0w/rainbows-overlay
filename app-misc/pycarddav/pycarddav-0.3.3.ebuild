@@ -4,31 +4,34 @@
 
 EAPI=4
 
-PYTHON_DEPEND="2:2.7"
-PYTHON_RESTRICTED_ABIS="3.* *-jython *-pypy-*"
+PYTHON_DEPEND="2:2.6"
+PYTHON_USE_WITH="sqlite"
 
-inherit eutils
+inherit eutils python
 
-DESCRIPTION="cli carddav client (for use with mutt etc.) "
+DESCRIPTION="cli carddav client (for use with mutt etc.)"
 HOMEPAGE="http://pycarddav.lostpackets.de"
 SRC_URI="http://pycarddav.lostpackets.de/download/${P}.tar.gz"
 
-LICENSE="THE BEER-WARE LICENSE"
+LICENSE="BEER-WARE"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
 IUSE=""
 
-RDEPEND="dev-python/vobject
+RDEPEND="dev-python/lxml
 		dev-python/pycurl
-		dev-python/lxml
-		dev-python/pysqlite:2"
+		dev-python/vobject
+		|| ( dev-lang/python:2.7 dev-python/argparse )"
 DEPEND="${RDEPEND}"
 
-src_compile() { true; }
+src_prepare(){
+	python_convert_shebangs 2 pc_query pycardsyncer
+}
 
 src_install(){
-	dodoc pycard.conf.sample README.html README.rst || die
-	dobin pc_query pycardsyncer || die
+	dodoc pycard.conf.sample README.rst
+	dohtml README.html
+	dobin pc_query pycardsyncer
 }
 
 pkg_postinst() {
@@ -38,4 +41,3 @@ pkg_postinst() {
 	ewarn "if you have untrusted users on your machine,"
 	ewarn "since the password is stored in cleartext."
 }
-
