@@ -8,21 +8,21 @@ inherit eutils
 
 DESCRIPTION="A commandline-based, portable human IP stack for UNIX/Linux"
 HOMEPAGE="http://nemesis.sourceforge.net/"
-SRC_URI="mirror://sourceforge/nemesis/${P}.tar.gz"
+SRC_URI="mirror://sourceforge/${PN}/${P/_}.tar.gz"
 
 LICENSE="as-is"
 SLOT="0"
-KEYWORDS="alpha amd64 sparc x86"
+KEYWORDS="~alpha ~amd64 ~sparc ~x86"
 IUSE=""
 
 RDEPEND="net-libs/libpcap"
 DEPEND="${RDEPEND}
 	=net-libs/libnet-1.0*"
 
-DOCS=""
+DOCS="CREDITS ChangeLog README"
 
 src_prepare() {
-	epatch "${FILESDIR}"/nemesis-1.4-fileio.patch
-	epatch "${FILESDIR}"/nemesis-1.4-libnet-1.0.patch
-	epatch "${FILESDIR}"/nemesis-1.4-prototcp.patch
+	epatch "${FILESDIR}"/${P}-fileio.patch
+	epatch "${FILESDIR}"/${P}-libnet-1.0.patch
+	epatch "${FILESDIR}"/${P}-prototcp.patch
 }

@@ -1,10 +1,9 @@
 # Copyright 1999-2010 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
+EAPI="2"
 
 inherit git
-
-EAPI="2"
 
 DESCRIPTION="ideviceactivate is a utility to activate iDevices from the comfort of your GNU/Linux box"
 HOMEPAGE="http://github.com/boxingsquirrel/ideviceactivate"
