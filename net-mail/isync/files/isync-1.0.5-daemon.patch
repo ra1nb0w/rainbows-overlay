@@ -1,0 +1,150 @@
+diff -rupN src_old/drv_imap.c src/drv_imap.c
+--- src_old/drv_imap.c	2011-11-29 22:40:31.000000000 +0100
++++ src/drv_imap.c	2012-07-01 13:48:01.621687529 +0200
+@@ -1078,6 +1078,15 @@ imap_close_store( store_t *ctx )
+ 	free( ctx );
+ }
+ 
++// Daemon close; maintain the structure with
++// username and password
++static void
++imap_half_close_store( store_t *ctx )
++{
++	imap_close_server( (imap_store_t *)ctx );
++	free_generic_messages( ctx->msgs );
++}
++
+ #ifdef HAVE_LIBSSL
+ static int
+ start_tls( imap_store_t *ctx )
+@@ -1840,6 +1849,7 @@ struct driver imap_driver = {
+ 	imap_parse_store,
+ 	imap_open_store,
+ 	imap_close_store,
++	imap_half_close_store,
+ 	imap_list,
+ 	imap_prepare,
+ 	imap_select,
+diff -rupN src_old/drv_maildir.c src/drv_maildir.c
+--- src_old/drv_maildir.c	2010-09-23 09:57:59.000000000 +0200
++++ src/drv_maildir.c	2012-07-01 14:05:42.805738279 +0200
+@@ -94,6 +94,9 @@ maildir_parse_flags( const char *base )
+ 
+ static void maildir_close_store( store_t *gctx );
+ 
++// daemon
++static void maildir_half_close_store( store_t *gctx );
++
+ static store_t *
+ maildir_open_store( store_conf_t *conf, store_t *oldctx )
+ {
+@@ -149,6 +152,16 @@ maildir_close_store( store_t *gctx )
+ 	free( gctx );
+ }
+ 
++// daemon. equal to maildir_close_store
++static void
++maildir_half_close_store( store_t *gctx )
++{
++	maildir_cleanup( gctx );
++	free( gctx );
++}
++
++
++
+ static int
+ maildir_list( store_t *gctx, string_list_t **retb )
+ {
+@@ -1189,6 +1202,8 @@ struct driver maildir_driver = {
+ 	maildir_parse_store,
+ 	maildir_open_store,
+ 	maildir_close_store,
++	// daemon -> same as maildir_close_store
++	maildir_half_close_store,
+ 	maildir_list,
+ 	maildir_prepare,
+ 	maildir_select,
+diff -rupN src_old/isync.h src/isync.h
+--- src_old/isync.h	2010-09-23 09:57:59.000000000 +0200
++++ src/isync.h	2012-07-01 14:02:31.397729126 +0200
+@@ -167,6 +167,8 @@ struct driver {
+ 	int (*parse_store)( conffile_t *cfg, store_conf_t **storep, int *err );
+ 	store_t *(*open_store)( store_conf_t *conf, store_t *oldctx );
+ 	void (*close_store)( store_t *ctx );
++	// daemon added
++	void (*half_close_store) ( store_t *ctx );
+ 	int (*list)( store_t *ctx, string_list_t **boxes );
+ 	void (*prepare)( store_t *ctx, int opts );
+ 	int (*select)( store_t *ctx, int minuid, int maxuid, int *excs, int nexcs );
+diff -rupN src_old/main.c src/main.c
+--- src_old/main.c	2010-09-23 09:57:59.000000000 +0200
++++ src/main.c	2012-07-01 14:31:47.477813106 +0200
+@@ -62,6 +62,7 @@ PACKAGE " " VERSION " - mailbox synchron
+ "  -D, --debug		print debugging messages\n"
+ "  -V, --verbose		verbose mode (display network traffic)\n"
+ "  -q, --quiet		don't display progress info\n"
++"  -t, --Daemon 		daemon\n"
+ "  -v, --version		display version\n"
+ "  -h, --help		display this help message\n"
+ "\nIf neither --pull nor --push are specified, both are active.\n"
+@@ -168,6 +169,9 @@ main( int argc, char **argv )
+ 	int all = 0, list = 0, cops = 0, mops = 0, sops = 0, gumboxes, gusboxes;
+ 	int oind, ret, op, multiple, pseudo = 0;
+ 
++	// daemon variable
++	int Daemon = 0;
++
+ 	gethostname( Hostname, sizeof(Hostname) );
+ 	if ((ochar = strchr( Hostname, '.' )))
+ 		*ochar = 0;
+@@ -206,6 +210,8 @@ main( int argc, char **argv )
+ 					version();
+ 				else if (!strcmp( opt, "quiet" ))
+ 					Quiet++;
++				else if (!strcmp( opt, "daemon" ))
++					Daemon = 1;
+ 				else if (!strcmp( opt, "verbose" )) {
+ 					Verbose = 1;
+ 					if (!Quiet)
+@@ -379,6 +385,10 @@ main( int argc, char **argv )
+ 			version();
+ 		case 'h':
+ 			usage( 0 );
++		// daemon
++		case 't':
++			Daemon = 1;
++			break;
+ 		default:
+ 			fprintf( stderr, "Unknown option '-%c'\n", *(ochar - 1) );
+ 			return 1;
+@@ -400,6 +410,9 @@ main( int argc, char **argv )
+ 		return 1;
+ 	}
+ 
++
++	// daemon loop
++	do {
+ 	ret = 0;
+ 	chan = channels;
+ 	chanptr = 0;
+@@ -604,6 +617,20 @@ main( int argc, char **argv )
+ 				break;
+ 		}
+ 	}
++	// daemon check
++	if (Daemon){
++		free_string_list( usboxes );
++		if (sctx)
++			sdriver->half_close_store( sctx );
++			free_string_list( umboxes );
++		if (mctx)
++			mdriver->half_close_store( mctx );
++		printf ("\n>> Sleeping ...\n\n");
++		sleep (300);
++	}
++	// end daemon loop
++	} while (Daemon);
++	//
+ 	free_string_list( usboxes );
+ 	if (sctx)
+ 		sdriver->close_store( sctx );
