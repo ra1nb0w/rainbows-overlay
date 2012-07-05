@@ -1,0 +1,14 @@
+diff -rupN src_old/drv_imap.c src/drv_imap.c
+--- src_old/drv_imap.c	2011-11-29 22:40:31.000000000 +0100
++++ src/drv_imap.c	2012-07-05 10:09:38.072049206 +0200
+@@ -1690,7 +1690,9 @@ imap_list( store_t *gctx, string_list_t
+ 	int ret;
+ 
+ 	imap->boxes = 0;
+-	if ((ret = imap_exec_b( ctx, 0, "LIST \"\" \"%s%%\"", ctx->prefix )) != DRV_OK)
++	//if ((ret = imap_exec_b( ctx, 0, "LIST \"\" \"%s%%\"", ctx->prefix )) != DRV_OK)
++	//http://osdir.com/ml/mail.imap.isync.devel/2006-05/msg00007.html
++	if ((ret = imap_exec_b( ctx, 0, "LIST \"\" \"%s*\"", ctx->prefix )) != DRV_OK)
+ 		return ret;
+ 	*retb = imap->boxes;
+ 	return DRV_OK;

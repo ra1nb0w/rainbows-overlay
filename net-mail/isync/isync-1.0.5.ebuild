@@ -24,6 +24,7 @@ src_configure () {
 
 src_prepare() {
 	epatch "${FILESDIR}"/${P}-daemon.patch
+	epatch "${FILESDIR}"/${P}-hierarchy.patch
 }
 
 src_install()
