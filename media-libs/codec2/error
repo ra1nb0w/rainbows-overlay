@@ -1,0 +1,28 @@
+
+ * QA Notice: Automake "maintainer mode" detected:
+ * 
+ *      cd . && /bin/sh /var/tmp/portage/media-libs/codec2-9999/work/codec2-9999/missing --run aclocal-1.9 
+ *      cd . && /bin/sh /var/tmp/portage/media-libs/codec2-9999/work/codec2-9999/missing --run autoconf
+ *       cd . && /bin/sh /var/tmp/portage/media-libs/codec2-9999/work/codec2-9999/missing --run automake-1.9 --gnu 
+ * 
+ * If you patch Makefile.am, configure.in,  or configure.ac then you
+ * should use autotools.eclass and eautomake or eautoreconf. Exceptions
+ * are limited to system packages for which it is impossible to run
+ * autotools during stage building. See
+ * http://www.gentoo.org/proj/en/qa/autofailure.xml for more information.
+ * QA Notice: command not found:
+ * 
+ *      /var/tmp/portage/media-libs/codec2-9999/work/codec2-9999/missing: line 52: aclocal-1.9: command not found
+ *      /var/tmp/portage/media-libs/codec2-9999/work/codec2-9999/missing: line 52: automake-1.9: command not found
+
+
+
+ * QA Notice: Package triggers severe warnings which indicate that it
+ *            may exhibit random runtime failures.
+ * tlspsens.c:82:2: warning: implicit declaration of function ‘analyse_one_frame’ [-Wimplicit-function-declaration]
+ * tlspsens.c:95:2: warning: implicit declaration of function ‘lsp_to_lpc’ [-Wimplicit-function-declaration]
+
+ * Please do not file a Gentoo bug and instead report the above QA
+ * issues directly to the upstream developers of this software.
+ * Homepage: rowetel.com/codec2.html
+
