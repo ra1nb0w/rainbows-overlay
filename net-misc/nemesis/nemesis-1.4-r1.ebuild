@@ -10,7 +10,7 @@ DESCRIPTION="A commandline-based, portable human IP stack for UNIX/Linux"
 HOMEPAGE="http://nemesis.sourceforge.net/"
 SRC_URI="mirror://sourceforge/${PN}/${P/_}.tar.gz"
 
-LICENSE="as-is"
+LICENSE="BSD"
 SLOT="0"
 KEYWORDS="~alpha ~amd64 ~sparc ~x86"
 IUSE=""
