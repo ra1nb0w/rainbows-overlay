@@ -25,8 +25,8 @@ src_unpack() {
 	git-2_src_unpack
 }
 
-pkg_postinst() {
-  ## need to be fixed: qlist show these files
-  rm /etc/logkeys-start.sh
-  rm /etc/logkeys-kill.sh
-}
+## need these files
+#/etc/logkeys-start.sh
+#/etc/logkeys-kill.sh
+# by llk llkk
+# but it's wrong to use /etc for this purpose
