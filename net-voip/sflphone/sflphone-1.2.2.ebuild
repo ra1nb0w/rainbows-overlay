@@ -4,19 +4,24 @@
 
 EAPI="3"
 
+## NOTE
+## I am the maintainer of sflphone on Gentoo, where the policy is to disable
+## building with shipped libraries and use system ones when available.
+## check bug: https://projects.savoirfairelinux.com/issues/18763
+
 inherit autotools eutils gnome2
 
 DESCRIPTION="SFLphone is a robust standards-compliant enterprise softphone, for desktop and embedded systems."
 HOMEPAGE="http://www.sflphone.org/"
 #SRC_URI="http://www.elvanor.net/files/gentoo/${P}.tar.gz"
-SRC_URI="https://projects.savoirfairelinux.com/attachments/download/4306/${P}.tar.gz"
+SRC_URI="https://projects.savoirfairelinux.com/attachments/download/5064/${P}.tar.gz"
 
 LICENSE="GPL-3"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
 IUSE="debug doxygen gnome gsm kde networkmanager speex static-libs "
 
-		#gnome-extra/evolution-data-server
+#>=net-libs/pjsip-1.8.10
 CDEPEND="dev-cpp/commoncpp2
 	dev-libs/dbus-c++
 	dev-libs/expat
@@ -29,7 +34,6 @@ CDEPEND="dev-cpp/commoncpp2
 	media-sound/pulseaudio
 	net-libs/ccrtp
 	net-libs/libzrtpcpp
-	>=net-libs/pjsip-1.8.10
 	sys-apps/dbus
 	gsm? ( media-sound/gsm )
 	speex? ( media-libs/speex )
@@ -62,8 +66,9 @@ pkg_setup() {
 }
 
 src_prepare() {
-	cd daemon/libs/pjproject
+	cd daemon/libs/pjproject-2.0.1
 	#./configure --disable-ilbc-codec
+	## why disable?
 	econf --disable-ilbc-codec
 	#cd daemon/libs/pjproject
 	emake -j1 || die "emake failed."
