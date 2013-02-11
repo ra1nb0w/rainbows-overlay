@@ -43,13 +43,13 @@ src_install() {
 	fi
 
 	insinto /usr/share/pixmaps
-	doins resources/install/debian/sip-communicator.svg
+	#doins resources/install/debian/sip-communicator.svg
 	#newins resources/install/debian/sip-communicator-32.xpm sip-communicator.xpm
 	make_desktop_entry jitsi Jitsi sip-communicator \
 	"AudioVideo;Network;InstantMessaging;Chat;Telephony;VideoConference;Java;"
 
 	sed -e 's/_PACKAGE_NAME_/jitsi/g' -e 's/_APP_NAME_/Jitsi/g' \
-		resources/install/debian/sip-communicator.1.tmpl > jitsi.1 ||die
+	  resources/install/debian/jitsi.sh.tmpl > jitsi.1 ||die
 	doman jitsi.1
 
 	libjawt_path="\\\$(java-config -o)/jre/lib"
@@ -61,7 +61,7 @@ src_install() {
 	sed -e 's/_PACKAGE_NAME_/jitsi/g' \
 		-e 's/javabin=.*/javabin=\$(java-config -J)/' \
 		-e "s|LD_LIBRARY_PATH=|LD_LIBRARY_PATH=${libjawt_path}:|" \
-		resources/install/debian/sip-communicator.sh.tmpl > jitsi || die
+		resources/install/debian/jitsi.sh.tmpl > jitsi || die
 	dobin jitsi
 	echo "SEARCH_DIRS_MASK=${EPREFIX}/usr/$(get_libdir)/jitsi/lib/native" \
 		> 50-"${PN}"
