@@ -16,7 +16,7 @@ IUSE=""
 
 QA_PREBUILT="/opt/${PN}/pdfeditor"
 
-DEPEND=">=x11-libs/qt-core-4.8.1:4"
+DEPEND=">=dev-qt/qtcore-4.8.1:4"
 RDEPEND="${DEPEND}"
 
 ## temporary fix

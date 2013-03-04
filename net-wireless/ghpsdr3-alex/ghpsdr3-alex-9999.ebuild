@@ -19,7 +19,7 @@ IUSE=""
 DEPEND="net-libs/ortp
 		dev-libs/libconfig
 		media-libs/codec2
-		x11-libs/qt-opengl
+		x11-libs/qtopengl
 		dev-libs/libusb
 		sci-libs/fftw
 		media-libs/portaudio

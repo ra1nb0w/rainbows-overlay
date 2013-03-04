@@ -17,10 +17,10 @@ IUSE=""
 ## add use: server dsp radio
 DEPEND="media-sound/pulseaudio
 		net-wireless/gnuradio
-		x11-libs/qt-core
+		dev-qt/qtcore
 		net-libs/libosmocore
 		net-wireless/gr-osmosdr
-		x11-libs/qt-gui"
+		dev-qt/qtgui"
 RDEPEND="${DEPEND}"
 
 src_unpack() {
