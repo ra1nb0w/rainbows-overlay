@@ -1,0 +1,19 @@
+diff -Napur orig/src/eap_peer/Makefile new/src/eap_peer/Makefile
+--- orig/src/eap_peer/Makefile	2012-09-01 00:34:54.000000000 +0200
++++ new/src/eap_peer/Makefile	2012-09-01 00:40:33.276263101 +0200
+@@ -32,6 +32,7 @@ override CFLAGS += -I. -I.. -I../crypto
+ override CFLAGS += -I ../../wpa_supplicant
+ 
+ OBJS_both += ../utils/common.o
++OBJS_both += ../utils/eloop.o
+ OBJS_both += ../utils/os_unix.o
+ OBJS_both += ../utils/wpa_debug.o
+ OBJS_both += ../utils/base64.o
+@@ -46,6 +47,7 @@ OBJS_both += ../crypto/aes-eax.o
+ OBJS_both += ../crypto/aes-omac1.o
+ OBJS_both += ../crypto/ms_funcs.o
+ OBJS_both += ../crypto/sha256.o
++OBJS_both += ../crypto/random.o
+ 
+ 
+ OBJS_both += ../eap_common/eap_peap_common.o
