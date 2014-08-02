@@ -2,33 +2,36 @@
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
-EAPI="4"
+EAPI="5"
 SUPPORT_PYTHON_ABIS="1"
 RESTRICT_PYTHON_ABIS="3.*"
-PYTHON_DEPEND="2:2.6"
+PYTHON_DEPEND="2:2.7"
 PYTHON_USE_WITH="sqlite"
 DISTUTILS_SRC_TEST="setup.py"
 
 inherit distutils
 
+MY_PN="pyCardDAV"
+
 DESCRIPTION="A CardDAV based address book tool"
 HOMEPAGE="http://lostpackets.de/pycarddav/"
-SRC_URI="https://lostpackets.de/pycarddav/downloads/${P}.tar.gz"
+SRC_URI="https://lostpackets.de/pycarddav/downloads/${MY_PN}-${PV}.tar.gz"
 
 LICENSE="MIT"
 KEYWORDS="~x86 ~amd64"
 SLOT="0"
 IUSE=""
 
+S="${WORKDIR}/${MY_PN}-${PV}"
+
 DEPEND="dev-python/lxml
 	dev-python/requests
 	dev-python/setuptools
 	dev-python/urwid
 	dev-python/vobject"
-#	virtual/python-argparse"
 RDEPEND="${DEPEND}"
 
-DOCS="pycard.conf.sample README.rst CHANGELOG NEWS"
+DOCS="pycard.conf.sample README.rst NEWS.txt"
 
 pkg_postinst() {
 	ewarn "Copy and edit the supplied pycard.conf.sample file"
