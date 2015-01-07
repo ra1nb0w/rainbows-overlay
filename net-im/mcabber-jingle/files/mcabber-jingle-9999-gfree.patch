@@ -1,0 +1,13 @@
+diff --git a/jingle/action-handlers.c b/jingle/action-handlers.c
+index 57b05e3..66622a2 100644
+--- a/jingle/action-handlers.c
++++ b/jingle/action-handlers.c
+@@ -258,7 +258,7 @@ void handle_transport_initialize(int correct, session_content *sc2)
+   if(!correct) {
+     scr_log_print(LPRINT_DEBUG, "Delete %s!", sc->name);
+     session_remove_sessioncontent(sess, sc->name);
+-    gfree(sc2);
++    g_free(sc2);
+     return;
+   }
+   sc->appfuncs->start(sc2);
