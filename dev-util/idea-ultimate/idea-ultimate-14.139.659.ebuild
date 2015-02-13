@@ -16,11 +16,11 @@ QA_TEXTRELS="opt/${P}/bin/libbreakgen.so"
 
 DESCRIPTION="IntelliJ IDEA is an intelligent Java IDE (Ultimate Edition)"
 HOMEPAGE="http://jetbrains.com/idea/"
-SRC_URI="http://download.jetbrains.com/${MY_PN}/${MY_PN}IU-$(get_version_component_range 1).0.1.tar.gz"
+SRC_URI="http://download.jetbrains.com/${MY_PN}/${MY_PN}IU-$(get_version_component_range 1).0.2.tar.gz"
 LICENSE="Apache-2.0"
 IUSE=""
 KEYWORDS="~x86 ~amd64"
-S="${WORKDIR}/${MY_PN}-IU-${MY_PV}.3"
+S="${WORKDIR}/${MY_PN}-IU-${MY_PV}.2"
 
 src_install() {
 	local dir="/opt/${P}"
