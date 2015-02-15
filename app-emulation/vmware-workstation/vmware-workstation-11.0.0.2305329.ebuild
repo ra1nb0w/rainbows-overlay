@@ -1,10 +1,10 @@
-# Copyright 1999-2012 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/app-emulation/vmware-workstation/vmware-workstation-8.0.4.744019-r1.ebuild,v 1.1 2012/06/17 13:11:13 vadimk Exp $
+# $Header: /var/cvsroot/gentoo-x86/app-emulation/vmware-workstation/vmware-workstation-10.0.2.1744117.ebuild,v 1.1 2014/04/19 10:13:35 dilfridge Exp $
 
 EAPI="4"
 
-inherit eutils versionator fdo-mime gnome2-utils pam vmware-bundle
+inherit eutils versionator fdo-mime systemd gnome2-utils pam vmware-bundle
 
 MY_PN="VMware-Workstation"
 MY_PV=$(get_version_component_range 1-3)
@@ -12,18 +12,20 @@ PV_MINOR=$(get_version_component_range 3)
 PV_BUILD=$(get_version_component_range 4)
 MY_P="${MY_PN}-${MY_PV}-${PV_BUILD}"
 
+SYSTEMD_UNITS_TAG="gentoo-01"
+
 DESCRIPTION="Emulate a complete PC on your PC without the usual performance overhead of most emulators"
 HOMEPAGE="http://www.vmware.com/products/workstation/"
-BASE_URI="https://softwareupdate.vmware.com/cds/vmw-desktop/ws/${MY_PV}/${PV_BUILD}/linux/core/"
+BASE_URI="http://softwareupdate.vmware.com/cds/vmw-desktop/ws/${MY_PV}/${PV_BUILD}/linux/core/"
 SRC_URI="
-	x86? ( ${BASE_URI}${MY_P}.i386.bundle.tar )
 	amd64? ( ${BASE_URI}${MY_P}.x86_64.bundle.tar )
+	https://github.com/akhuettel/systemd-vmware/archive/${SYSTEMD_UNITS_TAG}.tar.gz
 	"
-LICENSE="vmware"
+LICENSE="vmware GPL-2"
 SLOT="0"
-KEYWORDS="-* ~amd64 ~x86"
+KEYWORDS="-* ~amd64"
 IUSE="cups doc ovftool server vix vmware-tools"
-RESTRICT="binchecks mirror strip"
+RESTRICT="mirror strip"
 
 # vmware-workstation should not use virtual/libc as this is a
 # precompiled binary package thats linked to glibc.
@@ -31,19 +33,19 @@ RDEPEND="dev-cpp/cairomm
 	dev-cpp/glibmm:2
 	dev-cpp/gtkmm:2.4
 	dev-cpp/libgnomecanvasmm
-	dev-cpp/libsexymm
 	dev-cpp/pangomm
 	dev-libs/atk
 	dev-libs/glib:2
 	dev-libs/icu
 	dev-libs/expat
 	dev-libs/libaio
+	dev-libs/libgcrypt:11
 	dev-libs/libsigc++
 	dev-libs/libxml2
 	=dev-libs/openssl-0.9.8*
 	dev-libs/xmlrpc-c
 	gnome-base/libgnomecanvas
-	gnome-base/libgtop:2
+	gnome-base/libgtop
 	gnome-base/librsvg:2
 	gnome-base/orbit
 	media-libs/fontconfig
@@ -59,8 +61,8 @@ RDEPEND="dev-cpp/cairomm
 	sys-libs/zlib
 	x11-libs/cairo
 	x11-libs/gtk+:2
+	x11-libs/libgksu
 	x11-libs/libICE
-	x11-libs/libsexy
 	x11-libs/libSM
 	x11-libs/libX11
 	x11-libs/libXau
@@ -78,12 +80,11 @@ RDEPEND="dev-cpp/cairomm
 	x11-libs/libXrender
 	x11-libs/libXtst
 	x11-libs/pango
+	x11-libs/pangox-compat
 	x11-libs/startup-notification
 	x11-themes/hicolor-icon-theme
 	!app-emulation/vmware-player"
-	#
-	#x11-libs/libgksu
-PDEPEND="~app-emulation/vmware-modules-264.${PV_MINOR}
+PDEPEND="~app-emulation/vmware-modules-304.${PV_MINOR}
 	vmware-tools? ( app-emulation/vmware-tools )"
 
 S=${WORKDIR}
@@ -93,7 +94,9 @@ VM_HOSTD_USER="root"
 
 src_unpack() {
 	default
-	local bundle=${A%.tar}
+	local bundle
+	use amd64 && bundle=${MY_P}.x86_64.bundle
+	use x86 && bundle=${MY_P}.i386.bundle
 	local component; for component in \
 		vmware-vmx \
 		vmware-player-app \
@@ -101,7 +104,8 @@ src_unpack() {
 		vmware-workstation \
 		vmware-network-editor \
 		vmware-network-editor-ui \
-		vmware-usbarbitrator
+		vmware-usbarbitrator \
+		vmware-vprobe
 	do
 		vmware-bundle_extract-bundle-component "${bundle}" "${component}" "${S}"
 	done
@@ -112,7 +116,7 @@ src_unpack() {
 
 	if use vix; then
 		vmware-bundle_extract-bundle-component "${bundle}" vmware-vix-core vmware-vix
-		vmware-bundle_extract-bundle-component "${bundle}" vmware-vix-lib-Workstation800andvSphere500 vmware-vix
+		vmware-bundle_extract-bundle-component "${bundle}" vmware-vix-lib-Workstation1100andvSphere600 vmware-vix
 	fi
 	if use ovftool; then
 		vmware-bundle_extract-bundle-component "${bundle}" vmware-ovftool
@@ -122,6 +126,9 @@ src_unpack() {
 src_prepare() {
 	rm -f  bin/vmware-modconfig
 	rm -rf lib/modules/binary
+	# Bug 459566
+	mv lib/libvmware-netcfg.so lib/lib/
+
 	if use server; then
 		rm -f vmware-workstation-server/bin/{openssl,configure-hostd.sh}
 	fi
@@ -156,6 +163,12 @@ src_install() {
 	# install the libraries
 	insinto "${VM_INSTALL_DIR}"/lib/vmware
 	doins -r lib/*
+
+	# Bug 432918
+	dosym "${VM_INSTALL_DIR}"/lib/vmware/lib/libcrypto.so.0.9.8/libcrypto.so.0.9.8 \
+		"${VM_INSTALL_DIR}"/lib/vmware/lib/libvmwarebase.so.0/libcrypto.so.0.9.8
+	dosym "${VM_INSTALL_DIR}"/lib/vmware/lib/libssl.so.0.9.8/libssl.so.0.9.8 \
+		"${VM_INSTALL_DIR}"/lib/vmware/lib/libvmwarebase.so.0/libssl.so.0.9.8
 
 	# install the ancillaries
 	insinto /usr
@@ -201,7 +214,7 @@ src_install() {
 		doins -r lib/*
 
 		into "${VM_INSTALL_DIR}"
-		for tool in  vmware-{hostd,vim-cmd,wssc-adminTool} ; do
+		for tool in  vmware-{hostd,wssc-adminTool} ; do
 			cat > "${T}/${tool}" <<-EOF
 				#!/usr/bin/env bash
 				set -e
@@ -270,8 +283,8 @@ src_install() {
 	fi
 
 	# create symlinks for the various tools
-	local tool ; for tool in thnuclnt vmware vmplayer{,-daemon} \
-			vmware-{acetool,enter-serial,gksu,fuseUI,modconfig{,-console},netcfg,tray,unity-helper} ; do
+	local tool ; for tool in thnuclnt vmware vmplayer{,-daemon} licenseTool vmamqpd \
+			vmware-{acetool,enter-serial,gksu,fuseUI,modconfig{,-console},netcfg,tray,unity-helper,zenity} ; do
 		dosym appLoader "${VM_INSTALL_DIR}"/lib/vmware/bin/"${tool}"
 	done
 	dosym "${VM_INSTALL_DIR}"/lib/vmware/bin/vmplayer "${VM_INSTALL_DIR}"/bin/vmplayer
@@ -285,7 +298,7 @@ src_install() {
 	fperms 4711 "${VM_INSTALL_DIR}"/bin/vmware-mount
 	fperms 4711 "${VM_INSTALL_DIR}"/lib/vmware/bin/vmware-vmx{,-debug,-stats}
 	if use server; then
-		fperms 0755 "${VM_INSTALL_DIR}"/lib/vmware/bin/vmware-{hostd,vim-cmd,wssc-adminTool}
+		fperms 0755 "${VM_INSTALL_DIR}"/lib/vmware/bin/vmware-{hostd,wssc-adminTool}
 		fperms 4711 "${VM_INSTALL_DIR}"/sbin/vmware-authd
 		fperms 1777 "${VM_DATA_STORE_DIR}"
 	fi
@@ -355,7 +368,7 @@ src_install() {
 			-e "s:@@PREFIX@@:${VM_INSTALL_DIR}:g" \
 			-e "s:@@BINDIR@@:${VM_INSTALL_DIR}/bin:g" \
 			-e "s:@@LIBDIR@@:${VM_INSTALL_DIR}/lib/vmware:g" \
-			"${FILESDIR}/vmware-server-8.0.rc" > ${initscript}
+			"${FILESDIR}/vmware-server-${major_minor}.rc" > ${initscript}
 		newinitd "${initscript}" vmware-workstation-server
 	fi
 
@@ -363,10 +376,13 @@ src_install() {
 	sed -e "s:@@LIBCONF_DIR@@:${VM_INSTALL_DIR}/lib/vmware/libconf:g" \
 		-i "${D}${VM_INSTALL_DIR}"/lib/vmware/libconf/etc/{gtk-2.0/{gdk-pixbuf.loaders,gtk.immodules},pango/pango{.modules,rc}}
 	sed -e "s:@@BINARY@@:${VM_INSTALL_DIR}/bin/vmware:g" \
+		-e "/^Encoding/d" \
 		-i "${D}/usr/share/applications/${PN}.desktop"
 	sed -e "s:@@BINARY@@:${VM_INSTALL_DIR}/bin/vmplayer:g" \
+		-e "/^Encoding/d" \
 		-i "${D}/usr/share/applications/vmware-player.desktop"
 	sed -e "s:@@BINARY@@:${VM_INSTALL_DIR}/bin/vmware-netcfg:g" \
+		-e "/^Encoding/d" \
 		-i "${D}/usr/share/applications/vmware-netcfg.desktop"
 
 	if use server; then
@@ -441,6 +457,9 @@ src_install() {
 		sed -e "s:@@AUTHD_PORT@@:902:g" \
 			-i "${D}${VM_INSTALL_DIR}/lib/vmware/hostd/docroot/client/clients.xml" || die
 	fi
+
+	# install systemd unit files
+	systemd_dounit "${WORKDIR}/systemd-vmware-${SYSTEMD_UNITS_TAG}/"*.{service,target}
 }
 
 pkg_config() {
